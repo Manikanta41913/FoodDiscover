@@ -59,3 +59,17 @@ Thumbs.db
 # Misc
 *.pem
 .vercel
+
+# Kiro
+.kiro/
+
+# Documentation and SQL files
+*.sql
+DATABASE_SCHEMA.md
+SUPABASE_GUIDE.md
+CHECKLIST.md
+DARK_MODE.md
+DEPLOYMENT.md
+FEATURES.md
+REDESIGN.md
+VERIFICATION_REPORT.md
