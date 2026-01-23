@@ -4,7 +4,7 @@
   "description": "A modern food delivery platform built with React",
   "scripts": {
     "start": "parcel index.html",
-    "build": "parcel build index.html",
+    "build": "parcel build index.html && cp _redirects dist/",
     "test": "jest",
     "watch-test": "jest --watch"
   },
