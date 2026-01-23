@@ -1,15 +1,26 @@
 import { useState, useContext } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useOnlineStatus from "../utils/useOnlineStatus";
 import UserContext, { ThemeContext } from "../utils/UserContext";
+import { useAuth } from "../utils/AuthContext";
 import { useSelector } from "react-redux";
 
 const Header = () => {
-  const [btnNameReact, setBtnNameReact] = useState("Login");
   const onlineStatus = useOnlineStatus();
   const { loggedInUser } = useContext(UserContext);
   const { theme, toggleTheme } = useContext(ThemeContext);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const cartItems = useSelector((store) => store.cart.items);
+
+  const handleAuthClick = async () => {
+    if (user) {
+      await signOut();
+      navigate('/');
+    } else {
+      navigate('/login');
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-white dark:bg-dark-800 shadow-sm border-b border-dark-100 dark:border-dark-700 dark:border-dark-700">
@@ -92,23 +103,25 @@ const Header = () => {
             </Link>
 
             {/* User */}
-            <div className="hidden lg:flex items-center space-x-3 px-4 py-2 bg-dark-50 dark:bg-dark-700 dark:bg-dark-700 rounded-lg">
-              <div className="w-8 h-8 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
-                <svg className="w-5 h-5 text-primary-600 dark:text-primary-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                </svg>
+            {user && (
+              <div className="hidden lg:flex items-center space-x-3 px-4 py-2 bg-dark-50 dark:bg-dark-700 dark:bg-dark-700 rounded-lg">
+                <div className="w-8 h-8 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-primary-600 dark:text-primary-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <span className="text-sm font-medium text-dark-700 dark:text-dark-200 dark:text-dark-300">
+                  {user.user_metadata?.full_name || user.email}
+                </span>
               </div>
-              <span className="text-sm font-medium text-dark-700 dark:text-dark-200 dark:text-dark-300">{loggedInUser}</span>
-            </div>
+            )}
 
             {/* Login/Logout Button */}
             <button
-              onClick={() => {
-                setBtnNameReact(btnNameReact === "Login" ? "Logout" : "Login");
-              }}
+              onClick={handleAuthClick}
               className="btn-primary"
             >
-              {btnNameReact}
+              {user ? 'Logout' : 'Login'}
             </button>
           </div>
         </div>

@@ -1,12 +1,15 @@
 import { useDispatch } from "react-redux";
 import { addItem } from "../utils/cartSlice";
 import { CDN_URL } from "../utils/constants";
+import { useCartSync } from "../utils/useCartSync";
 
 const ItemList = ({ items }) => {
   const dispatch = useDispatch();
+  const { syncAddItem } = useCartSync();
 
-  const handleAddItem = (item) => {
+  const handleAddItem = async (item) => {
     dispatch(addItem(item));
+    await syncAddItem(item);
   };
 
   const getFallbackImage = (itemName) => {

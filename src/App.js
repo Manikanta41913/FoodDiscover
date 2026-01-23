@@ -7,14 +7,23 @@ import Error from "./components/Error";
 import RestaurantMenu from "./components/RestaurantMenu";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
+import Login from "./components/Login";
+import Signup from "./components/Signup";
 import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import UserContext, { ThemeContext } from "./utils/UserContext";
+import { AuthProvider } from "./utils/AuthContext";
 import { Provider } from "react-redux";
 import appStore from "./utils/appStore";
 import Cart from "./components/Cart";
+import { useCartSync } from "./utils/useCartSync";
 
 const Grocery = lazy(() => import("./components/Grocery"));
 const About = lazy(() => import("./components/About"));
+
+const CartSyncWrapper = () => {
+  useCartSync();
+  return null;
+};
 
 const AppLayout = () => {
   const [userName, setUserName] = useState();
@@ -44,18 +53,21 @@ const AppLayout = () => {
 
   return (
     <Provider store={appStore}>
-      <ThemeContext.Provider value={{ theme, toggleTheme }}>
-        <UserContext.Provider value={{ loggedInUser: userName, setUserName }}>
-          <div className="app flex flex-col min-h-screen">
-            <Header />
-            <main className="flex-1">
-              <Outlet />
-            </main>
-            <Footer />
-            <ScrollToTop />
-          </div>
-        </UserContext.Provider>
-      </ThemeContext.Provider>
+      <AuthProvider>
+        <CartSyncWrapper />
+        <ThemeContext.Provider value={{ theme, toggleTheme }}>
+          <UserContext.Provider value={{ loggedInUser: userName, setUserName }}>
+            <div className="app flex flex-col min-h-screen">
+              <Header />
+              <main className="flex-1">
+                <Outlet />
+              </main>
+              <Footer />
+              <ScrollToTop />
+            </div>
+          </UserContext.Provider>
+        </ThemeContext.Provider>
+      </AuthProvider>
     </Provider>
   );
 };
@@ -110,6 +122,14 @@ const appRouter = createBrowserRouter([
       {
         path: "/cart",
         element: <Cart />,
+      },
+      {
+        path: "/login",
+        element: <Login />,
+      },
+      {
+        path: "/signup",
+        element: <Signup />,
       },
     ],
     errorElement: <Error />,

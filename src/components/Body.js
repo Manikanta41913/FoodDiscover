@@ -1,9 +1,10 @@
 import RestaurantCard, { withPromtedLabel } from "./RestaurantCard";
-import { useState, useEffect, useContext, useCallback } from "react";
+import { useState, useEffect, useContext } from "react";
 import Shimmer from "./Shimmer";
 import { Link } from "react-router-dom";
 import useOnlineStatus from "../utils/useOnlineStatus";
 import UserContext from "../utils/UserContext";
+import { fetchRestaurants } from "../utils/supabaseService";
 
 const Body = () => {
   const [listOfRestaurants, setListOfRestraunt] = useState([]);
@@ -38,25 +39,52 @@ const Body = () => {
 
   const fetchData = async () => {
     try {
-      const data = await fetch(
-        "https://www.swiggy.com/dapi/restaurants/list/v5?lat=12.9351929&lng=77.62448069999999&page_type=DESKTOP_WEB_LISTING"
-      );
-      const json = await data.json();
-      setListOfRestraunt(
-        json?.data?.cards[2]?.card?.card?.gridElements?.infoWithStyle?.restaurants
-      );
-      setFilteredRestaurant(
-        json?.data?.cards[2]?.card?.card?.gridElements?.infoWithStyle?.restaurants
-      );
+      console.log('Fetching from Supabase...');
+      const data = await fetchRestaurants();
+      console.log('Supabase data:', data);
+      
+      if (!data || data.length === 0) {
+        throw new Error('No restaurants in database');
+      }
+      
+      // Transform Supabase data to match existing component structure
+      const transformed = data.map(restaurant => ({
+        info: {
+          id: restaurant.id,
+          name: restaurant.name,
+          cuisines: restaurant.cuisines,
+          avgRating: restaurant.avg_rating,
+          sla: { deliveryTime: restaurant.delivery_time },
+          costForTwo: `₹${restaurant.cost_for_two} for two`,
+          cloudinaryImageId: restaurant.image_url,
+          promoted: restaurant.promoted
+        }
+      }));
+      setListOfRestraunt(transformed);
+      setFilteredRestaurant(transformed);
     } catch (error) {
-      console.log("API failed, using mock data");
-      const mockData = await import("./mocks/mockResListData.json");
-      setListOfRestraunt(
-        mockData?.data?.cards[2]?.card?.card?.gridElements?.infoWithStyle?.restaurants
-      );
-      setFilteredRestaurant(
-        mockData?.data?.cards[2]?.card?.card?.gridElements?.infoWithStyle?.restaurants
-      );
+      console.log("Supabase failed, using Swiggy API", error);
+      try {
+        const data = await fetch(
+          "https://www.swiggy.com/dapi/restaurants/list/v5?lat=12.9351929&lng=77.62448069999999&page_type=DESKTOP_WEB_LISTING"
+        );
+        const json = await data.json();
+        setListOfRestraunt(
+          json?.data?.cards[2]?.card?.card?.gridElements?.infoWithStyle?.restaurants
+        );
+        setFilteredRestaurant(
+          json?.data?.cards[2]?.card?.card?.gridElements?.infoWithStyle?.restaurants
+        );
+      } catch (apiError) {
+        console.log("API failed, using mock data");
+        const mockData = await import("./mocks/mockResListData.json");
+        setListOfRestraunt(
+          mockData?.data?.cards[2]?.card?.card?.gridElements?.infoWithStyle?.restaurants
+        );
+        setFilteredRestaurant(
+          mockData?.data?.cards[2]?.card?.card?.gridElements?.infoWithStyle?.restaurants
+        );
+      }
     }
   };
 

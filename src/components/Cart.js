@@ -4,28 +4,33 @@ import { CDN_URL } from "../utils/constants";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import Toast from "./Toast";
+import { useCartSync } from "../utils/useCartSync";
 
 const Cart = () => {
   const cartItems = useSelector((store) => store.cart.items);
   const dispatch = useDispatch();
   const [toast, setToast] = useState(null);
+  const { syncClearCart, syncRemoveItem, syncAddItem } = useCartSync();
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
   };
 
-  const handleClearCart = () => {
+  const handleClearCart = async () => {
     dispatch(clearCart());
+    await syncClearCart();
     showToast("Cart cleared successfully", "success");
   };
 
-  const handleRemoveItem = (index) => {
+  const handleRemoveItem = async (index, item) => {
     dispatch(removeItem(index));
+    await syncRemoveItem(item);
     showToast("Item removed from cart", "success");
   };
 
-  const handleAddItem = (item) => {
+  const handleAddItem = async (item) => {
     dispatch(addItem(item));
+    await syncAddItem(item);
     showToast("Item added to cart", "success");
   };
 
@@ -144,7 +149,7 @@ const Cart = () => {
                           {/* Quantity Controls */}
                           <div className="flex items-center gap-3">
                             <button
-                              onClick={() => handleRemoveItem(indices[indices.length - 1])}
+                              onClick={() => handleRemoveItem(indices[indices.length - 1], item)}
                               className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-dark-700 hover:bg-gray-200 dark:hover:bg-dark-600 text-dark-700 dark:text-dark-200 transition-colors"
                             >
                               {quantity === 1 ? (
